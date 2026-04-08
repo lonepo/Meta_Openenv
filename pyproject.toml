@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "circuitsynth"
+version = "1.0.0"
+description = "OpenEnv-compliant RL environment for electronic circuit synthesis using ngspice SPICE simulation"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "CircuitSynth Authors" }
+]
+keywords = ["reinforcement-learning", "circuit-synthesis", "spice", "openenv", "ngspice"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "networkx>=3.0",
+    "gymnasium>=0.29.0",
+    "pyyaml>=6.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.22.0",
+    "openai>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov", "httpx"]
+sb3 = ["stable-baselines3>=2.0"]
+dtw = ["fastdtw>=0.3.4"]
+
+[project.scripts]
+circuitsynth-server    = "server:main"
+circuitsynth-inference = "inference:main"
+circuitsynth-baseline  = "scripts.baseline_inference:main"
+circuitsynth-eval      = "scripts.evaluate:main"
+
+[project.urls]
+Repository = "https://github.com/lonepo/Meta_Openenv/"
+Space      = "https://huggingface.co/spaces/gautamsgev/ELectrical_Metaopenenv"
+
+[tool.setuptools.packages.find]
+exclude = ["tests*", "scripts*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = "-v --tb=short"
+
+[tool.setuptools.package-data]
+circuitsynth = ["*.yaml"]
