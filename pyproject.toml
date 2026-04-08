@@ -41,7 +41,7 @@ sb3 = ["stable-baselines3>=2.0"]
 dtw = ["fastdtw>=0.3.4"]
 
 [project.scripts]
-circuitsynth-server    = "server.app:app"
+server                 = "server.app:main"
 circuitsynth-inference = "inference:main"
 circuitsynth-baseline  = "scripts.baseline_inference:main"
 circuitsynth-eval      = "scripts.evaluate:main"
