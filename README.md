@@ -1,8 +1,8 @@
 ---
 title: CircuitSynth SquareWave RL Env
 emoji: ⚡
-colorFrom: gold
-colorTo: black
+colorFrom: yellow
+colorTo: gray
 sdk: docker
 app_port: 7860
 pinned: false
