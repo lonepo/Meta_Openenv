@@ -278,7 +278,7 @@ docker:
   base_image: ubuntu:22.04
   ngspice_version: "39"
   python_version: "3.11"
-  server_entrypoint: ["python", "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "7860"]
+  server_entrypoint: ["python", "-m", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
   inference_entrypoint: ["python", "inference.py"]
   ports: [7860]
 

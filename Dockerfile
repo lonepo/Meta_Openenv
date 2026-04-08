@@ -83,5 +83,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 # Override CMD to run inference instead:
 #   docker run ... circuitsynth python inference.py
 # ---------------------------------------------------------------------------
-ENTRYPOINT ["python", "-m", "uvicorn", "server:app"]
+ENTRYPOINT ["python", "-m", "uvicorn", "server.app:app"]
 CMD ["--host", "0.0.0.0", "--port", "7860"]
