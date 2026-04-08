@@ -16,7 +16,7 @@ description: >
 
 author: CircuitSynth Authors
 license: MIT
-repository: https://github.com/your-org/circuitsynth-squarewave
+repository: https://github.com/lonepo/Meta_Openenv/
 
 # OpenEnv API version
 api: openenv

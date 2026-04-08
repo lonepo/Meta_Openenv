@@ -1,6 +1,16 @@
+---
+title: CircuitSynth SquareWave RL Env
+emoji: ⚡
+colorFrom: gold
+colorTo: black
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # CircuitSynth-SquareWave
 
-> An OpenEnv-compliant Reinforcement Learning environment for electronic circuit synthesis using ngspice SPICE simulation.
+> An OpenEnv-compliant RL environment for LLM-based electronic circuit synthesis using ngspice SPICE simulation.
 
 The agent learns to design **transistor-based astable oscillator circuits** that generate target square waveforms by incrementally placing and connecting components from a fixed library.
 
@@ -140,7 +150,7 @@ A **graph-structured observation** (for GNN policies) is available via `env.grap
 
 ## Reward Function
 
-**Range:** `[-1.0, 1.0]`
+**Range:** `[0.0, 1.0]` (returned by the server and `inference.py`; internally shaped from `[-1, 1]`)
 
 | Component | Weight (default) | Description |
 |-----------|-----------------|-------------|
@@ -286,7 +296,7 @@ The environment logs the following metrics per episode (in `info` dict and `env.
 
 | Metric | Description |
 |--------|-------------|
-| `total_reward` | Final reward in [-1, 1] |
+| `total_reward` | Final reward in [0, 1] (server) |
 | `all_thresholds_met` | True if ALL waveform constraints satisfied |
 | `sim_success` | SPICE simulation converged |
 | `waveform_metrics.frequency` | Measured oscillation frequency (Hz) |
@@ -308,7 +318,7 @@ The environment logs the following metrics per episode (in `info` dict and `env.
 | Observability | Partial (agent sees circuit graph + sim feedback) |
 | Action space | `MultiDiscrete([4, 7, 20, 12, 12, 12, 12])` |
 | Observation space | `Box(269,)` float32 |
-| Reward | Shaped + sparse terminal bonus, range `[-1, 1]` |
+| Reward | Shaped + sparse terminal bonus, range `[0, 1]` (server/inference) |
 | Termination | FINALIZE action or `max_steps` exceeded (truncation) |
 | Invalid actions | Penalised with `-0.02`, do not crash the env |
 | Non-convergence | Penalised, env continues to next action |
