@@ -1,0 +1,156 @@
+{
+  "total_reward": 0.9592050468081901,
+  "step_rewards": [
+    0.005,
+    0.005,
+    0.005,
+    0.005,
+    0.005,
+    0.005,
+    0.005,
+    0.005,
+    0.005,
+    0.91420504680819
+  ],
+  "n_components": 9,
+  "sim_success": true,
+  "all_thresholds_met": true,
+  "waveform_metrics": {
+    "frequency": 555.1700208188757,
+    "duty_cycle": 0.493125,
+    "voh": 4.684210526315789,
+    "vol": 0.0,
+    "vpp": 4.684210526315789,
+    "rise_time": 4.000000000000531e-06,
+    "fall_time": 3.999999999998796e-06,
+    "settling_time": 0.0,
+    "stability": 0.9987980216463783,
+    "n_cycles": 8,
+    "sim_success": true
+  },
+  "reward_decomposition": {
+    "total": 0.91420504680819,
+    "waveform_similarity": 0.1987961915073716,
+    "amplitude_score": 0.1405263157894737,
+    "frequency_score": 0.19969389067879972,
+    "duty_cycle_score": 0.098625,
+    "stability_score": 0.079063648832545,
+    "simulation_success_score": 0.07,
+    "component_penalty": -0.0225,
+    "invalid_action_penalty": -0.0,
+    "convergence_penalty": -0.0,
+    "overbudget_penalty": -0.0,
+    "terminal_bonus": 0.15,
+    "all_thresholds_met": true,
+    "raw_waveform_sim": 0.993980957536858,
+    "raw_amplitude": 0.9368421052631579,
+    "raw_frequency": 0.9984694533939985,
+    "raw_duty_cycle": 0.98625,
+    "raw_stability": 0.9882956104068126
+  },
+  "netlist": {
+    "n_components": 9,
+    "components": [
+      {
+        "comp_id": "V1",
+        "comp_type": "VSOURCE",
+        "value": 4.684210526315789,
+        "value_idx": 5,
+        "connections": {
+          "+": "VCC",
+          "-": "GND"
+        }
+      },
+      {
+        "comp_id": "R2",
+        "comp_type": "RESISTOR",
+        "value": 379.26901907322497,
+        "value_idx": 5,
+        "connections": {
+          "A": "VCC",
+          "B": "N1"
+        }
+      },
+      {
+        "comp_id": "R3",
+        "comp_type": "RESISTOR",
+        "value": 379.26901907322497,
+        "value_idx": 5,
+        "connections": {
+          "A": "VCC",
+          "B": "N2"
+        }
+      },
+      {
+        "comp_id": "R4",
+        "comp_type": "RESISTOR",
+        "value": 127427.49857031321,
+        "value_idx": 13,
+        "connections": {
+          "A": "VCC",
+          "B": "N3"
+        }
+      },
+      {
+        "comp_id": "R5",
+        "comp_type": "RESISTOR",
+        "value": 127427.49857031321,
+        "value_idx": 13,
+        "connections": {
+          "A": "VCC",
+          "B": "N4"
+        }
+      },
+      {
+        "comp_id": "C6",
+        "comp_type": "CAPACITOR",
+        "value": 4.832930238571752e-07,
+        "value_idx": 12,
+        "connections": {
+          "A": "N1",
+          "B": "N4"
+        }
+      },
+      {
+        "comp_id": "C7",
+        "comp_type": "CAPACITOR",
+        "value": 4.832930238571752e-07,
+        "value_idx": 12,
+        "connections": {
+          "A": "N2",
+          "B": "N3"
+        }
+      },
+      {
+        "comp_id": "Q8",
+        "comp_type": "NPN_BJT",
+        "value": 0.0,
+        "value_idx": 0,
+        "connections": {
+          "C": "N1",
+          "B": "N3",
+          "E": "GND"
+        }
+      },
+      {
+        "comp_id": "Q9",
+        "comp_type": "NPN_BJT",
+        "value": 0.0,
+        "value_idx": 0,
+        "connections": {
+          "C": "N2",
+          "B": "N4",
+          "E": "GND"
+        }
+      }
+    ],
+    "used_nodes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+}

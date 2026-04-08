@@ -1,0 +1,343 @@
+# OpenEnv Specification — CircuitSynth-SquareWave
+# =================================================
+# An RL / LLM-agent environment for electronic circuit synthesis.
+# The agent learns to design transistor-based astable oscillator circuits that
+# generate target square waveforms, backed by ngspice SPICE simulation.
+
+name: CircuitSynth-SquareWave
+version: "1.0.0"
+description: >
+  An OpenEnv-compliant reinforcement learning environment for electronic circuit
+  synthesis. The agent incrementally builds a SPICE netlist using a fixed component
+  library (NPN BJTs, resistors, capacitors, diodes, voltage sources) and receives a
+  shaped reward based on how closely the ngspice-simulated output waveform matches
+  a target square wave. Three tasks of increasing difficulty are provided, all within
+  the transistor-based astable oscillator circuit family.
+
+author: CircuitSynth Authors
+license: MIT
+repository: https://github.com/your-org/circuitsynth-squarewave
+
+# OpenEnv API version
+api: openenv
+api_version: "1.0"
+
+# --------------------------------------------------------------------------
+# Tasks
+# --------------------------------------------------------------------------
+tasks:
+  - id: squarewave-easy
+    description: >
+      Generate a 555 Hz square wave with ~5 V amplitude and 50% duty cycle.
+      Loose tolerances: ±20% frequency, ±20% amplitude, ±10% duty cycle.
+      12-component budget, 30 action steps.
+    difficulty: easy
+    target:
+      frequency_hz: 555
+      duty_cycle: 0.50
+      amplitude_v: 5.0
+    tolerances:
+      frequency: 0.20
+      duty_cycle: 0.10
+      amplitude: 0.20
+    budget:
+      max_components: 12
+      max_steps: 30
+    simulation:
+      stop_time_s: 20e-3
+      step_size_s: 5e-6
+      output_node: N1
+
+  - id: squarewave-medium
+    description: >
+      Generate a 1 kHz square wave with ~5 V amplitude and 50% duty cycle.
+      Tighter tolerances: ±10% frequency, ±10% amplitude, ±5% duty cycle.
+      Rise/fall time < 100 µs. 10-component budget, 25 steps.
+    difficulty: medium
+    target:
+      frequency_hz: 1000
+      duty_cycle: 0.50
+      amplitude_v: 5.0
+    tolerances:
+      frequency: 0.10
+      duty_cycle: 0.05
+      amplitude: 0.10
+      max_rise_time_s: 100e-6
+      max_fall_time_s: 100e-6
+      min_stability: 0.85
+    budget:
+      max_components: 10
+      max_steps: 25
+    simulation:
+      stop_time_s: 10e-3
+      step_size_s: 2e-6
+      output_node: N1
+
+  - id: squarewave-hard
+    description: >
+      Generate a 2 kHz precision square wave with ~5 V amplitude and 50% duty cycle.
+      Strict tolerances: ±5% frequency, ±5% amplitude, ±2% duty cycle.
+      Rise/fall time < 50 µs. Stability > 0.95. 8-component budget, 20 steps.
+    difficulty: hard
+    target:
+      frequency_hz: 2000
+      duty_cycle: 0.50
+      amplitude_v: 5.0
+    tolerances:
+      frequency: 0.05
+      duty_cycle: 0.02
+      amplitude: 0.05
+      max_rise_time_s: 50e-6
+      max_fall_time_s: 50e-6
+      min_stability: 0.95
+    budget:
+      max_components: 8
+      max_steps: 20
+    simulation:
+      stop_time_s: 6e-3
+      step_size_s: 1e-6
+      output_node: N1
+
+# --------------------------------------------------------------------------
+# Observation space
+# --------------------------------------------------------------------------
+observation:
+  type: Box
+  shape: [269]
+  dtype: float32
+  description: >
+    Flat float32 vector of 269 values.
+  components:
+    adjacency_matrix:
+      offset: 0
+      length: 144    # N_NODES × N_NODES = 12 × 12
+      description: Normalised node-to-node connectivity matrix (flattened)
+    component_features:
+      offset: 144
+      length: 96     # max_components × 8 = 12 × 8
+      description: Per-component feature vectors (type one-hot + value + model flag)
+    waveform_metrics:
+      offset: 240
+      length: 10
+      description: >
+        Normalised waveform metrics from last simulation:
+        [frequency, duty_cycle, voh, vol, vpp, rise_time, fall_time,
+         settling_time, stability, n_cycles]
+    task_target:
+      offset: 250
+      length: 6
+      description: "[target_freq/10k, duty_cycle, amplitude/20, freq_tol, dc_tol, amp_tol]"
+    flags:
+      offset: 256
+      length: 4
+      description: "[has_finalized, is_invalid, conv_failed, terminated]"
+    budget:
+      offset: 260
+      length: 3
+      description: "[components_used/max, steps_remaining/max, invalid_rate]"
+    reward_history:
+      offset: 263
+      length: 6
+      description: Last 6 episode rewards (clipped to [-1, 1])
+
+# --------------------------------------------------------------------------
+# Action space
+# --------------------------------------------------------------------------
+action:
+  type: MultiDiscrete
+  nvec: [4, 7, 20, 12, 12, 12, 12]
+  total_combinations: 11612160
+  description: >
+    7-dimensional integer action vector:
+  dimensions:
+    - index: 0
+      name: action_type
+      n: 4
+      values: [ADD_COMPONENT, REMOVE_COMPONENT, FINALIZE, NO_OP]
+    - index: 1
+      name: component_type
+      n: 7
+      values: [RESISTOR, CAPACITOR, NPN_BJT, DIODE, VSOURCE, SWITCH, NONE]
+    - index: 2
+      name: value_idx
+      n: 20
+      description: Log-spaced index into component value table
+    - index: 3
+      name: node_a
+      n: 12
+      description: "First terminal node: 0=VCC, 1=GND, 2..11=N1..N10"
+    - index: 4
+      name: node_b
+      n: 12
+      description: Second terminal node (same vocabulary)
+    - index: 5
+      name: node_c
+      n: 12
+      description: "Third terminal node (BJT emitter; ignored for 2-terminal components)"
+    - index: 6
+      name: remove_idx
+      n: 12
+      description: Index of placed component to remove (only for REMOVE_COMPONENT)
+
+# --------------------------------------------------------------------------
+# Reward
+# --------------------------------------------------------------------------
+reward:
+  range: [0.0, 1.0]
+  description: >
+    Weighted, normalised, shaped reward in [0.0, 1.0] (shifted from internal
+    [-1,1] representation). Includes a terminal bonus when ALL waveform
+    constraints are simultaneously satisfied. The FINALIZE action triggers
+    SPICE simulation and returns the primary reward signal.
+  components:
+    - name: waveform_similarity
+      sign: positive
+      weight_default: 0.25
+      description: Normalized MSE vs ideal square wave target
+    - name: amplitude_score
+      sign: positive
+      weight_default: 0.20
+      description: Closeness of measured Vpp to target amplitude
+    - name: frequency_score
+      sign: positive
+      weight_default: 0.20
+      description: Exponential decay with relative frequency error
+    - name: duty_cycle_score
+      sign: positive
+      weight_default: 0.15
+      description: Linear penalty on |DC_measured - DC_target|
+    - name: stability_score
+      sign: positive
+      weight_default: 0.10
+      description: Period regularity + rise/fall edge quality
+    - name: simulation_success
+      sign: positive
+      weight_default: 0.05
+      description: Binary bonus for SPICE convergence
+    - name: component_penalty
+      sign: negative
+      weight_default: 0.05
+      description: n_components / max_components (encourage minimal designs)
+    - name: invalid_action_penalty
+      sign: negative
+      weight_default: 0.03
+      description: Cumulative invalid actions / max_steps
+    - name: convergence_penalty
+      sign: negative
+      weight_default: 0.02
+      description: Per-failure penalty for SPICE non-convergence
+    - name: overbudget_penalty
+      sign: negative
+      weight_default: 0.02
+      description: Binary penalty if n_components > max_components
+    - name: terminal_bonus
+      sign: positive
+      weight_default: 0.20
+      description: Bonus when ALL thresholds simultaneously satisfied
+
+# --------------------------------------------------------------------------
+# Requirements
+# --------------------------------------------------------------------------
+requirements:
+  python: ">=3.10"
+  system_packages:
+    - ngspice       # for real SPICE simulation; mock mode available without it
+  python_packages:
+    - numpy>=1.24.0
+    - scipy>=1.10.0
+    - networkx>=3.0
+    - gymnasium>=0.29.0
+    - pyyaml>=6.0
+
+# --------------------------------------------------------------------------
+# HTTP Server (for HF Spaces deployment and openenv validate)
+# --------------------------------------------------------------------------
+server:
+  port: 7860
+  endpoints:
+    - method: GET
+      path: /health
+      description: Health check — returns 200 with {"status": "ok"}
+    - method: POST
+      path: /reset
+      description: Reset episode, returns initial observation
+    - method: POST
+      path: /step
+      description: Apply action, returns (observation, reward, done, info)
+    - method: GET
+      path: /state/{session_id}
+      description: Full MDP state dump
+    - method: GET
+      path: /tasks
+      description: List all available tasks
+
+# --------------------------------------------------------------------------
+# Docker
+# --------------------------------------------------------------------------
+docker:
+  base_image: ubuntu:22.04
+  ngspice_version: "39"
+  python_version: "3.11"
+  server_entrypoint: ["python", "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "7860"]
+  inference_entrypoint: ["python", "inference.py"]
+  ports: [7860]
+
+# --------------------------------------------------------------------------
+# Environment variables (MUST be set before running inference.py)
+# --------------------------------------------------------------------------
+env_vars:
+  required:
+    - name: API_BASE_URL
+      description: The API endpoint for the LLM (OpenAI-compatible base URL)
+    - name: MODEL_NAME
+      description: The model identifier to use for inference
+    - name: HF_TOKEN
+      description: Your Hugging Face / API key
+  optional:
+    - name: TASK_NAME
+      default: squarewave-easy
+      description: Task ID (squarewave-easy | squarewave-medium | squarewave-hard)
+    - name: MOCK_SIM
+      default: "true"
+      description: Use mock simulator without ngspice
+    - name: PORT
+      default: "7860"
+      description: Server port
+
+# --------------------------------------------------------------------------
+# Inference script
+# --------------------------------------------------------------------------
+inference:
+  script: inference.py
+  location: root
+  client: openai
+  log_format:
+    start: "[START] {json}"
+    step:  "[STEP] {json}"
+    end:   "[END] {json}"
+  max_runtime_minutes: 20
+  max_vcpu: 2
+  max_memory_gb: 8
+
+# --------------------------------------------------------------------------
+# Evaluation metrics
+# --------------------------------------------------------------------------
+evaluation_metrics:
+  - name: normalized_score
+    description: Final reward in [0, 1] (shifted from [-1, 1])
+  - name: success_rate
+    description: Fraction of episodes where all thresholds are met
+  - name: freq_error
+    description: Mean relative frequency error |f_meas - f_target| / f_target
+  - name: dc_error
+    description: Mean absolute duty-cycle error
+  - name: amp_error
+    description: Mean relative amplitude error
+  - name: sim_convergence_rate
+    description: Fraction of SPICE runs that converged
+  - name: mean_n_components
+    description: Average number of components placed per episode
+  - name: invalid_action_rate
+    description: Average fraction of steps that were invalid actions
+  - name: mean_stability
+    description: Average waveform period stability score [0, 1]
