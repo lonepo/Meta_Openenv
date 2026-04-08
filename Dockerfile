@@ -80,8 +80,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 
 # ---------------------------------------------------------------------------
 # Entrypoint: FastAPI server (serves reset/step/state HTTP API)
-# Override CMD to run inference instead:
-#   docker run ... circuitsynth python inference.py
+# Override by running: docker run circuitsynth python inference.py
+# Using CMD instead of ENTRYPOINT so validators can override the whole command
 # ---------------------------------------------------------------------------
-ENTRYPOINT ["python", "-m", "uvicorn", "server.app:app"]
-CMD ["--host", "0.0.0.0", "--port", "7860"]
+CMD ["python", "-m", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
