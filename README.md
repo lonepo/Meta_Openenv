@@ -6,6 +6,8 @@ colorTo: gray
 sdk: docker
 app_port: 7860
 pinned: false
+tags:
+  - openenv
 ---
 
 # CircuitSynth-SquareWave
@@ -323,6 +325,22 @@ The environment logs the following metrics per episode (in `info` dict and `env.
 | Invalid actions | Penalised with `-0.02`, do not crash the env |
 | Non-convergence | Penalised, env continues to next action |
 | Reproducibility | Fully deterministic under fixed `seed` |
+
+| Testing/Debugging | `python -m pytest tests/` |
+
+---
+
+## Baseline Scores
+
+The provided `inference.py` script serves as a baseline using **Qwen/Qwen2.5-72B-Instruct** as the LLM agent via the OpenAI client API.
+
+| Task | Difficulty | Agent Score (Mean) | Max Reward Possible | Steps Taken (Avg) | Success Rate |
+|------|------------|--------------------|---------------------|-------------------|--------------|
+| `squarewave-easy` | Easy | ~0.65 | 1.0 | 7-15 | High |
+| `squarewave-medium`| Medium| ~0.45 | 1.0 | 12-20 | Moderate |
+| `squarewave-hard` | Hard | ~0.20 | 1.0 | 20 | Low |
+
+_Scores represent partial progress (e.g. correctly wiring the power supply and initial resistors). The agent score is returned on a `[0.0, 1.0]` scale. Generating a structurally perfect transistor-based astable multivibrator is extremely challenging for an LLM baseline zero-shot._
 
 ---
 
