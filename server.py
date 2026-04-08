@@ -28,7 +28,7 @@ import uuid
 from typing import Any, Dict, Optional
 
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -249,8 +249,12 @@ async def root():
     return await health()
 
 
+@app.get("/reset", response_model=ResetResponse)
 @app.post("/reset", response_model=ResetResponse)
-async def reset(req: ResetRequest):
+async def reset(req: Optional[ResetRequest] = Body(default=None)):
+    """Reset an episode. Body is optional — all fields have defaults."""
+    if req is None:
+        req = ResetRequest()
     session_id = req.session_id or str(uuid.uuid4())
     env = _get_or_create_env(session_id, req.task_id, req.seed)
 
