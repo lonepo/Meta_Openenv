@@ -32,6 +32,7 @@ dependencies = [
     "fastapi>=0.100.0",
     "uvicorn>=0.22.0",
     "openai>=1.0.0",
+    "openenv-core>=0.2.0",
 ]
 
 [project.optional-dependencies]
@@ -40,7 +41,7 @@ sb3 = ["stable-baselines3>=2.0"]
 dtw = ["fastdtw>=0.3.4"]
 
 [project.scripts]
-circuitsynth-server    = "server:main"
+circuitsynth-server    = "server.app:app"
 circuitsynth-inference = "inference:main"
 circuitsynth-baseline  = "scripts.baseline_inference:main"
 circuitsynth-eval      = "scripts.evaluate:main"
