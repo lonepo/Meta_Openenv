@@ -62,7 +62,7 @@ RUN pip install --no-cache-dir -e .
 # ---------------------------------------------------------------------------
 ENV PORT=7860
 ENV MOCK_SIM=true
-ENV API_BASE_URL=https://api-inference.huggingface.co/v1/
+ENV API_BASE_URL=https://router.huggingface.co/hf-inference/v1/
 ENV MODEL_NAME=Qwen/Qwen2.5-72B-Instruct
 ENV HF_TOKEN=hf_placeholder
 ENV TASK_NAME=squarewave-easy

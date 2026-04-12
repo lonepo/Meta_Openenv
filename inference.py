@@ -35,7 +35,7 @@ from openai import OpenAI
 # Configuration from environment variables
 # ---------------------------------------------------------------------------
 
-API_BASE_URL = os.environ.get("API_BASE_URL", "https://api-inference.huggingface.co/v1/")
+API_BASE_URL = os.environ.get("API_BASE_URL", "https://router.huggingface.co/hf-inference/v1/")
 API_KEY      = os.environ.get("OPENAI_API_KEY") or os.environ.get("HF_TOKEN", "hf_placeholder")
 MODEL_NAME   = os.environ.get("MODEL_NAME",   "Qwen/Qwen2.5-72B-Instruct")
 TASK_NAME    = os.environ.get("TASK_NAME",    "squarewave-easy")
