@@ -1,5 +1,0 @@
-[console_scripts]
-circuitsynth-baseline = scripts.baseline_inference:main
-circuitsynth-eval = scripts.evaluate:main
-circuitsynth-inference = inference:main
-circuitsynth-server = server:main

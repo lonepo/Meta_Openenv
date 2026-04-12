@@ -41,6 +41,8 @@ MODEL_NAME   = os.environ.get("MODEL_NAME",   "Qwen/Qwen2.5-72B-Instruct")
 TASK_NAME    = os.environ.get("TASK_NAME",    "squarewave-easy")
 BENCHMARK    = "CircuitSynth-SquareWave"
 
+MOCK_SIM = os.environ.get("MOCK_SIM", "true").lower() in ("1", "true", "yes")
+
 # Episode config
 MAX_STEPS         = 20    # must complete within 20 min total; kept short per step
 MAX_TOTAL_REWARD  = 1.0   # a single perfect FINALIZE gives 1.0
@@ -288,7 +290,7 @@ async def run_episode(
     task_id: str,
     seed: int = 42,
 ) -> dict:
-    env = CircuitSynthEnv(task_id=task_id, seed=seed, mock_sim=False)
+    env = CircuitSynthEnv(task_id=task_id, seed=seed, mock_sim=MOCK_SIM)
     obs, info = env.reset(seed=seed)
 
     history:     List[str]   = []
@@ -352,8 +354,13 @@ async def run_episode(
 
 
 def main():
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
-    asyncio.run(run_episode(client=client, task_id=TASK_NAME, seed=42))
+    try:
+        client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+        asyncio.run(run_episode(client=client, task_id=TASK_NAME, seed=42))
+    except Exception as exc:
+        print(f"[ERROR] inference.py failed: {exc}", file=sys.stderr, flush=True)
+        log_end(success=False, steps=0, score=0.0, rewards=[])
+        sys.exit(1)
 
 
 if __name__ == "__main__":
