@@ -73,14 +73,7 @@ ENV TASK_NAME=squarewave-easy
 EXPOSE 7860
 
 # ---------------------------------------------------------------------------
-# Healthcheck
+# Entrypoint: Run inference script
+# The validator will override this to run the server for evaluation.
 # ---------------------------------------------------------------------------
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:7860/health || exit 1
-
-# ---------------------------------------------------------------------------
-# Entrypoint: FastAPI server (serves reset/step/state HTTP API)
-# Override by running: docker run circuitsynth python inference.py
-# Using CMD instead of ENTRYPOINT so validators can override the whole command
-# ---------------------------------------------------------------------------
-CMD ["python", "-m", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["python", "inference.py"]
